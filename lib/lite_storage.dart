@@ -25,9 +25,9 @@ class LiteStorage implements ILiteStorage {
     _concrete = _IoStorage(key);
     _initialData = initialData;
 
-    _initStorage = Future<bool>(() async {
+    _initStorage = Future<LiteStorage>(() async {
       await _init();
-      return true;
+      return this;
     });
   }
 
@@ -35,7 +35,7 @@ class LiteStorage implements ILiteStorage {
 
   final microtask = _Microtask();
 
-  static Future<bool> init([String container = 'LiteStorage']) {
+  static Future<LiteStorage> init([String container = 'LiteStorage']) {
     WidgetsFlutterBinding.ensureInitialized();
     return LiteStorage(container)._initStorage;
   }
@@ -84,7 +84,7 @@ class LiteStorage implements ILiteStorage {
 
   late _IoStorage _concrete;
 
-  late Future<bool> _initStorage;
+  late Future<LiteStorage> _initStorage;
 
   Map<String, dynamic>? _initialData;
 }
