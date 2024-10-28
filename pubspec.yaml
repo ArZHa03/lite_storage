@@ -1,6 +1,6 @@
 name: lite_storage
-description: "A fast, extra light and synchronous key-value storage written entirely in Dart."
-version: 0.0.1
+description: "A super-duper-mega-ultra-extra fast, light and synchronous key-value storage written."
+version: 3.1.1
 homepage: ''
 
 environment:

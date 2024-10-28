@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
+import 'package:path_provider/path_provider.dart';
 
-import 'storage/io.dart';
+import 'i_lite_storage.dart';
 
-class LiteStorage {
+part 'io_storage.dart';
+
+class LiteStorage implements ILiteStorage {
   factory LiteStorage([String container = 'LiteStorage', String? path, Map<String, dynamic>? initialData]) {
     if (_sync.containsKey(container)) {
       return _sync[container]!;
@@ -16,10 +22,10 @@ class LiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _concrete = IOStorage(key, path);
+    _concrete = _IoStorage(key);
     _initialData = initialData;
 
-    initStorage = Future<bool>(() async {
+    _initStorage = Future<bool>(() async {
       await _init();
       return true;
     });
@@ -31,69 +37,54 @@ class LiteStorage {
 
   static Future<bool> init([String container = 'LiteStorage']) {
     WidgetsFlutterBinding.ensureInitialized();
-    return LiteStorage(container).initStorage;
+    return LiteStorage(container)._initStorage;
   }
 
   Future<void> _init() async {
     try {
-      await _concrete.init(_initialData);
+      await _concrete._init(_initialData);
     } catch (err) {
       rethrow;
     }
   }
 
-  T? read<T>(String key) => _concrete.read(key);
-  T getKeys<T>() => _concrete.getKeys();
-  T getValues<T>() => _concrete.getValues();
-  bool hasData(String key) => (read(key) == null ? false : true);
+  @override
+  T? read<T>(String key) => _concrete._read(key);
 
-  Map<String, dynamic> get changes => _concrete.subject;
-
-  Future<void> write(String key, dynamic value) async {
-    writeInMemory(key, value);
-
+  @override
+  void write(String key, dynamic value) {
+    _concrete._write(key, value);
     return _tryFlush();
   }
 
-  void writeInMemory(String key, dynamic value) {
-    _concrete.write(key, value);
-  }
-
-  Future<void> writeIfNull(String key, dynamic value) async {
-    if (read(key) != null) return;
-    return write(key, value);
-  }
-
-  Future<void> remove(String key) async {
-    _concrete.remove(key);
+  @override
+  void remove(String key) {
+    _concrete._remove(key);
     return _tryFlush();
   }
 
-  Future<void> erase() async {
-    _concrete.clear();
+  @override
+  void erase() {
+    _concrete._clear();
     return _tryFlush();
   }
 
-  Future<void> save() async => _tryFlush();
+  void _tryFlush() => microtask._exec(_addToQueue);
 
-  Future<void> _tryFlush() async => microtask.exec(_addToQueue);
-
-  Future _addToQueue() => _flush();
+  Future<void> _addToQueue() async => await _flush();
 
   Future<void> _flush() async {
     try {
-      await _concrete.flush();
+      await _concrete._flush();
     } catch (e) {
       rethrow;
     }
     return;
   }
 
-  late IOStorage _concrete;
+  late _IoStorage _concrete;
 
-  Map<String, dynamic> get listenable => _concrete.subject;
-
-  late Future<bool> initStorage;
+  late Future<bool> _initStorage;
 
   Map<String, dynamic>? _initialData;
 }
@@ -102,7 +93,7 @@ class _Microtask {
   int _version = 0;
   int _microtask = 0;
 
-  void exec(Function callback) {
+  void _exec(Function callback) {
     if (_microtask == _version) {
       _microtask++;
       scheduleMicrotask(() {
@@ -113,5 +104,3 @@ class _Microtask {
     }
   }
 }
-
-typedef KeyCallback = Function(String);
