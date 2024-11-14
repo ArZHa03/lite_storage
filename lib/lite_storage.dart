@@ -9,8 +9,15 @@ import 'package:path_provider/path_provider.dart';
 import 'i_lite_storage.dart';
 
 part 'io_storage.dart';
+part 'microtask.dart';
 
 class LiteStorage implements ILiteStorage {
+  static final Map<String, LiteStorage> _sync = {};
+  final _microtask = _Microtask();
+  late _IoStorage _concrete;
+  late Future<LiteStorage> _initStorage;
+  Map<String, dynamic>? _initialData;
+
   factory LiteStorage([String container = 'LiteStorage', String? path, Map<String, dynamic>? initialData]) {
     if (_sync.containsKey(container)) {
       return _sync[container]!;
@@ -31,45 +38,41 @@ class LiteStorage implements ILiteStorage {
     });
   }
 
-  static final Map<String, LiteStorage> _sync = {};
-
-  final microtask = _Microtask();
+  Future<void> _init() async {
+    try {
+      await _concrete.init(_initialData);
+    } catch (err) {
+      rethrow;
+    }
+  }
 
   static Future<LiteStorage> init([String container = 'LiteStorage']) {
     WidgetsFlutterBinding.ensureInitialized();
     return LiteStorage(container)._initStorage;
   }
 
-  Future<void> _init() async {
-    try {
-      await _concrete._init(_initialData);
-    } catch (err) {
-      rethrow;
-    }
-  }
-
   @override
-  T? read<T>(String key) => _concrete._read(key);
+  T? read<T>(String key) => _concrete.read(key);
 
   @override
   void write(String key, dynamic value) {
-    _concrete._write(key, value);
+    _concrete.write(key, value);
     return _tryFlush();
   }
 
   @override
   void remove(String key) {
-    _concrete._remove(key);
+    _concrete.remove(key);
     return _tryFlush();
   }
 
   @override
   void erase() {
-    _concrete._clear();
+    _concrete.clear();
     return _tryFlush();
   }
 
-  void _tryFlush() => microtask._exec(_addToQueue);
+  void _tryFlush() => _microtask.exec(_addToQueue);
 
   Future<void> _addToQueue() async => await _flush();
 
@@ -80,27 +83,5 @@ class LiteStorage implements ILiteStorage {
       rethrow;
     }
     return;
-  }
-
-  late _IoStorage _concrete;
-
-  late Future<LiteStorage> _initStorage;
-
-  Map<String, dynamic>? _initialData;
-}
-
-class _Microtask {
-  int _version = 0;
-  int _microtask = 0;
-
-  void _exec(Function callback) {
-    if (_microtask == _version) {
-      _microtask++;
-      scheduleMicrotask(() {
-        _version++;
-        _microtask = _version;
-        callback();
-      });
-    }
   }
 }

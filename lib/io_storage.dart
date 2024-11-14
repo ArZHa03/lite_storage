@@ -1,15 +1,18 @@
 part of 'lite_storage.dart';
 
 class _IoStorage {
+  final String _fileName;
   _IoStorage(this._fileName);
 
-  final String _fileName;
-
   Map<String, dynamic> _subject = <String, dynamic>{};
-
   RandomAccessFile? _randomAccessfile;
 
-  void _clear() async => _subject.clear();
+  Future<void> init([Map<String, dynamic>? initialData]) async {
+    _subject = initialData ?? <String, dynamic>{};
+
+    RandomAccessFile file = await _getRandomFile();
+    return file.lengthSync() == 0 ? _flush() : _readFile();
+  }
 
   Future<void> _flush() async {
     final buffer = utf8.encode(json.encode(_subject));
@@ -26,18 +29,10 @@ class _IoStorage {
 
   void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
 
-  T? _read<T>(String key) => _subject[key] as T?;
-
-  Future<void> _init([Map<String, dynamic>? initialData]) async {
-    _subject = initialData ?? <String, dynamic>{};
-
-    RandomAccessFile file = await _getRandomFile();
-    return file.lengthSync() == 0 ? _flush() : _readFile();
-  }
-
-  void _remove(String key) => _subject.remove(key);
-
-  void _write(String key, dynamic value) => _subject[key] = value;
+  T? read<T>(String key) => _subject[key] as T?;
+  void write(String key, dynamic value) => _subject[key] = value;
+  void remove(String key) => _subject.remove(key);
+  void clear() async => _subject.clear();
 
   Future<void> _readFile() async {
     try {
