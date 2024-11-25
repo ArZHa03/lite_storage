@@ -4,18 +4,12 @@ A super-duper-mega-ultra-extra fast, light and synchronous key-value storage wri
 
 ## Installation
 
-Add this to your package's `pubspec.yaml` file:
+Add this to your package's `pubspec.yaml` file and then run `pub get`:
 
 ```yaml
 dependencies:
   lite_storage: 
     git: https://github.com/ArZHa03/lite_storage.git
-```
-
-Then run:
-
-```sh
-flutter pub get
 ```
 
 ## Usage
