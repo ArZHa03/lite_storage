@@ -1,6 +1,6 @@
 # LiteStorage
 
-A super-duper-mega-ultra-extra fast, light and synchronous key-value storage written.
+A simple, secure, fast, light and synchronous key-value storage written.
 
 ## Installation
 
@@ -18,6 +18,14 @@ First, initialize the storage:
 
 ```dart
 await LiteStorage.init(); // init first
+```
+
+### Secure Storage
+
+You can also initialize the storage with a password for encryption:
+
+```dart
+await LiteStorage.init(password: 'your-secure-password'); // init with password
 ```
 
 #### Example CRUD Operations
@@ -40,7 +48,7 @@ LiteStorage.erase(); // delete all data storage
 
 #### Methods
 
-- `Future<void> init([String container = 'LiteStorage'])`: Initialize the storage.
+- `Future<void> init([String container = 'LiteStorage', String? password])`: Initialize the storage.
 - `T? read<T>(String key)`: Read a value from the storage.
 - `void write(String key, dynamic value)`: Write a value to the storage.
 - `void remove(String key)`: Remove a value from the storage.

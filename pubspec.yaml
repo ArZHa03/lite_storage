@@ -1,6 +1,6 @@
 name: lite_storage
-description: "A super-duper-mega-ultra-extra fast, light and synchronous key-value storage written."
-version: 3.2.7
+description: "A simple, secure, fast, light and synchronous key-value storage written."
+version: 3.3.3
 homepage: ''
 
 environment:
@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.1.5
+  cryptography: ^2.7.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0
