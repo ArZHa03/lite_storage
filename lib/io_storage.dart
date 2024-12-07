@@ -1,20 +1,31 @@
 part of 'lite_storage.dart';
 
 class _IoStorage {
-  final String _fileName;
-  _IoStorage(this._fileName);
+  // auto self singleton
 
-  Map<String, dynamic> _subject = <String, dynamic>{};
-  RandomAccessFile? _randomAccessfile;
+  static _IoStorage? _instance;
+  factory _IoStorage(String fileName) {
+    _instance ??= _IoStorage._internal(fileName);
+    return _instance!;
+  }
 
-  Future<void> init([Map<String, dynamic>? initialData]) async {
+  _IoStorage._internal(String fileName) {
+    _fileName = fileName;
+  }
+
+  static late String _fileName;
+
+  static Map<String, dynamic> _subject = <String, dynamic>{};
+  static RandomAccessFile? _randomAccessfile;
+
+  static Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject = initialData ?? <String, dynamic>{};
 
     RandomAccessFile file = await _getRandomFile();
     return file.lengthSync() == 0 ? _flush() : _readFile();
   }
 
-  Future<void> _flush() async {
+  static Future<void> _flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
     RandomAccessFile file = await _getRandomFile();
@@ -27,14 +38,14 @@ class _IoStorage {
     _madeBackup();
   }
 
-  void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
+  static void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
 
-  T? read<T>(String key) => _subject[key] as T?;
-  void write(String key, dynamic value) => _subject[key] = value;
-  void remove(String key) => _subject.remove(key);
-  void clear() async => _subject.clear();
+  static T? read<T>(String key) => _subject[key] as T?;
+  static void write(String key, dynamic value) => _subject[key] = value;
+  static void remove(String key) => _subject.remove(key);
+  static void clear() async => _subject.clear();
 
-  Future<void> _readFile() async {
+  static Future<void> _readFile() async {
     try {
       RandomAccessFile file = await _getRandomFile();
       file = await file.setPosition(0);
@@ -60,7 +71,7 @@ class _IoStorage {
     }
   }
 
-  Future<RandomAccessFile> _getRandomFile() async {
+  static Future<RandomAccessFile> _getRandomFile() async {
     if (_randomAccessfile != null) return _randomAccessfile!;
     final fileDb = await _getFile(false);
     _randomAccessfile = await fileDb.open(mode: FileMode.append);
@@ -68,7 +79,7 @@ class _IoStorage {
     return _randomAccessfile!;
   }
 
-  Future<File> _getFile(bool isBackup) async {
+  static Future<File> _getFile(bool isBackup) async {
     final dir = await getApplicationDocumentsDirectory();
     final path = await _getPath(isBackup, dir.path);
     final file = File(path);
@@ -76,7 +87,7 @@ class _IoStorage {
     return file;
   }
 
-  Future<String> _getPath(bool isBackup, String? path) async {
+  static Future<String> _getPath(bool isBackup, String? path) async {
     final isWindows = Platform.isWindows;
     final separator = isWindows ? '\\' : '/';
     return isBackup ? '$path$separator$_fileName.bak' : '$path$separator$_fileName.gs';

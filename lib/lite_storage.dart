@@ -6,15 +6,12 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'i_lite_storage.dart';
-
 part 'io_storage.dart';
 part 'microtask.dart';
 
-class LiteStorage implements ILiteStorage {
+class LiteStorage {
   static final Map<String, LiteStorage> _sync = {};
   final _microtask = _Microtask();
-  late _IoStorage _concrete;
   late Future<LiteStorage> _initStorage;
   Map<String, dynamic>? _initialData;
 
@@ -29,7 +26,7 @@ class LiteStorage implements ILiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _concrete = _IoStorage(key);
+    _IoStorage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
@@ -40,7 +37,7 @@ class LiteStorage implements ILiteStorage {
 
   Future<void> _init() async {
     try {
-      await _concrete.init(_initialData);
+      await _IoStorage.init(_initialData);
     } catch (err) {
       rethrow;
     }
@@ -51,24 +48,20 @@ class LiteStorage implements ILiteStorage {
     return LiteStorage(container)._initStorage;
   }
 
-  @override
-  T? read<T>(String key) => _concrete.read(key);
+  static T? read<T>(String key) => _IoStorage.read(key);
 
-  @override
   void write(String key, dynamic value) {
-    _concrete.write(key, value);
+    _IoStorage.write(key, value);
     return _tryFlush();
   }
 
-  @override
   void remove(String key) {
-    _concrete.remove(key);
+    _IoStorage.remove(key);
     return _tryFlush();
   }
 
-  @override
   void erase() {
-    _concrete.clear();
+    _IoStorage.clear();
     return _tryFlush();
   }
 
@@ -78,7 +71,7 @@ class LiteStorage implements ILiteStorage {
 
   Future<void> _flush() async {
     try {
-      await _concrete._flush();
+      await _IoStorage._flush();
     } catch (e) {
       rethrow;
     }
