@@ -9,7 +9,9 @@ Add this to your package's `pubspec.yaml` file and then run `pub get`:
 ```yaml
 dependencies:
   lite_storage: 
-    git: https://github.com/ArZHa03/lite_storage.git
+    git:
+      url: https://github.com/ArZHa03/lite_storage.git
+      ref: static
 ```
 
 ## Usage
