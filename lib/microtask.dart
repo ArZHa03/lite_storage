@@ -1,10 +1,17 @@
 part of 'lite_storage.dart';
 
 class _Microtask {
-  int _version = 0;
-  int _microtask = 0;
+  static _Microtask? _instance;
+  factory _Microtask() {
+    _instance ??= _Microtask._internal();
+    return _instance!;
+  }
+  _Microtask._internal();
 
-  void exec(Function callback) {
+  static int _version = 0;
+  static int _microtask = 0;
+
+  static void exec(Function callback) {
     if (_microtask == _version) {
       _microtask++;
       scheduleMicrotask(() {
