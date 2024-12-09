@@ -55,6 +55,21 @@ class LiteStorage {
     return _tryFlush();
   }
 
+  void insertAtBeginning(String key, dynamic value) {
+    dynamic existingData = _IoStorage.read(key);
+
+    if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
+      existingData['data'].insert(0, value);
+    } else {
+      existingData = {
+        'data': [value]
+      };
+    }
+
+    _IoStorage.write(key, existingData);
+    return _tryFlush();
+  }
+
   void remove(String key) {
     _IoStorage.remove(key);
     return _tryFlush();

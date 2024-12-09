@@ -1,6 +1,6 @@
 name: lite_storage
 description: "A super-duper-mega-ultra-extra fast, light and synchronous key-value storage written."
-version: 3.2.7
+version: 3.2.8
 homepage: ''
 
 environment:
