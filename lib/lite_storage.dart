@@ -61,14 +61,9 @@ class LiteStorage {
       if (existingData is List) {
         if (id != null) {
           final index = existingData.indexWhere((element) => element['id'] == id);
-          if (index != -1) {
-            existingData[index] = value;
-            final updatedElement = existingData.removeAt(index);
-            existingData.insert(0, updatedElement);
-          }
-        } else {
-          existingData.insert(0, value);
+          if (index != -1) existingData.removeAt(index);
         }
+        existingData.insert(0, value);
       } else {
         existingData = [value];
       }
@@ -76,9 +71,9 @@ class LiteStorage {
       if (id != null) {
         final index = existingData[label].indexWhere((element) => element['id'] == id);
 
-        if (index == null) existingData[label].insert(0, value);
-
-        if (index != -1) {
+        if (index == -1) {
+          existingData[label].insert(0, value);
+        } else {
           existingData[label][index] = value;
           final updatedElement = existingData[label].removeAt(index);
           existingData[label].insert(0, updatedElement);
