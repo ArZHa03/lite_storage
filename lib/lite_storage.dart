@@ -54,15 +54,40 @@ class LiteStorage {
     return _tryFlush();
   }
 
-  static void insertAtBeginning(String key, dynamic value) {
+  static void insertAtBeginning(String key, dynamic value, {dynamic id}) {
     dynamic existingData = _IoStorage.read(key);
 
     if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
-      existingData['data'].insert(0, value);
+      if (id != null) {
+        final index = existingData['data'].indexWhere((element) => element['id'] == id);
+        if (index != -1) {
+          existingData['data'][index] = value;
+          final updatedElement = existingData['data'].removeAt(index);
+          existingData['data'].insert(0, updatedElement);
+        }
+      } else {
+        existingData['data'].insert(0, value);
+      }
     } else {
       existingData = {
         'data': [value]
       };
+    }
+
+    _IoStorage.write(key, existingData);
+    return _tryFlush();
+  }
+
+  static void update(String key, dynamic value, dynamic id) {
+    dynamic existingData = _IoStorage.read(key);
+
+    if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
+      final index = existingData['data'].indexWhere((element) => element['id'] == id);
+      if (index != -1) {
+        existingData['data'][index] = value;
+        final updatedElement = existingData['data'].removeAt(index);
+        existingData['data'].insert(0, updatedElement);
+      }
     }
 
     _IoStorage.write(key, existingData);
