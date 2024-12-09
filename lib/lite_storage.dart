@@ -61,10 +61,11 @@ class LiteStorage {
       if (existingData is List) {
         if (id != null) {
           final index = existingData.indexWhere((element) => element['id'] == id);
-
-          existingData[index] = value;
-          final updatedElement = existingData.removeAt(index);
-          existingData.insert(0, updatedElement);
+          if (index != -1) {
+            existingData[index] = value;
+            final updatedElement = existingData.removeAt(index);
+            existingData.insert(0, updatedElement);
+          }
         } else {
           existingData.insert(0, value);
         }
@@ -77,9 +78,11 @@ class LiteStorage {
 
         if (index == null) existingData[label].insert(0, value);
 
-        existingData[label][index] = value;
-        final updatedElement = existingData[label].removeAt(index);
-        existingData[label].insert(0, updatedElement);
+        if (index != -1) {
+          existingData[label][index] = value;
+          final updatedElement = existingData[label].removeAt(index);
+          existingData[label].insert(0, updatedElement);
+        }
       } else {
         existingData[label].insert(0, value);
       }
@@ -98,10 +101,11 @@ class LiteStorage {
 
     if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
       final index = existingData[label].indexWhere((element) => element['id'] == id);
-
-      existingData[label][index] = value;
-      final updatedElement = existingData[label].removeAt(index);
-      existingData[label].insert(0, updatedElement);
+      if (index != -1) {
+        existingData[label][index] = value;
+        final updatedElement = existingData[label].removeAt(index);
+        existingData[label].insert(0, updatedElement);
+      }
     }
 
     _IoStorage.write(key, existingData);
@@ -114,15 +118,14 @@ class LiteStorage {
     if (label == null) {
       if (existingData is List) {
         final index = existingData.indexWhere((element) => element['id'] == id);
-
-        existingData.removeAt(index);
+        if (index != -1) existingData.removeAt(index);
       }
     }
 
     if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
       final index = existingData[label].indexWhere((element) => element['id'] == id);
 
-      existingData[label].removeAt(index);
+      if (index != -1) existingData[label].removeAt(index);
     }
 
     _IoStorage.write(key, existingData);
