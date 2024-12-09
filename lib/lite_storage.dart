@@ -54,7 +54,7 @@ class LiteStorage {
     return _tryFlush();
   }
 
-  static void insertAtBeginning(String key, dynamic value, {String? label, dynamic id}) {
+  static void insertAtBeginning({required String key, required dynamic value, String? label, dynamic id}) {
     dynamic existingData = _IoStorage.read(key);
 
     if (label == null) {
@@ -71,9 +71,7 @@ class LiteStorage {
       } else {
         existingData = [value];
       }
-    }
-
-    if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
+    } else if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
       if (id != null) {
         final index = existingData[label].indexWhere((element) => element['id'] == id);
 
@@ -95,7 +93,7 @@ class LiteStorage {
     return _tryFlush();
   }
 
-  static void update(String key, dynamic id, {String? label, required dynamic value}) {
+  static void update({required String key, required dynamic id, String? label, required dynamic value}) {
     dynamic existingData = _IoStorage.read(key);
 
     if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
@@ -110,8 +108,16 @@ class LiteStorage {
     return _tryFlush();
   }
 
-  static void delete(String key, {String? label, required dynamic id}) {
+  static void delete({required String key, String? label, required dynamic id}) {
     dynamic existingData = _IoStorage.read(key);
+
+    if (label == null) {
+      if (existingData is List) {
+        final index = existingData.indexWhere((element) => element['id'] == id);
+
+        existingData.removeAt(index);
+      }
+    }
 
     if (existingData is Map && existingData.containsKey(label) && existingData[label] is List) {
       final index = existingData[label].indexWhere((element) => element['id'] == id);
