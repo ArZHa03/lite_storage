@@ -61,6 +61,22 @@ class LiteStorage implements ILiteStorage {
   }
 
   @override
+  void insertAtBeginning(String key, dynamic value) {
+    dynamic existingData = _concrete.read(key);
+
+    if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
+      existingData['data'].insert(0, value);
+    } else {
+      existingData = {
+        'data': [value]
+      };
+    }
+
+    _concrete.write(key, existingData);
+    return _tryFlush();
+  }
+
+  @override
   void remove(String key) {
     _concrete.remove(key);
     return _tryFlush();
