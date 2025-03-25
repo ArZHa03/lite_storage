@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'i_lite_storage.dart';
 import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
+import 'i_lite_storage.dart';
 
 class LiteStorage implements ILiteStorage {
   static final Map<String, LiteStorage> _sync = {};
@@ -46,7 +46,6 @@ class LiteStorage implements ILiteStorage {
 
   @override
   T? read<T>(String key) => _concrete.read(key);
-
   @override
   void write(String key, dynamic value) => _concrete.write(key, value);
   @override
