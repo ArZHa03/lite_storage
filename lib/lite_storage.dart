@@ -1,20 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
 
 import 'i_lite_storage.dart';
-
-part 'io_storage.dart';
-part 'microtask.dart';
+import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
 
 class LiteStorage implements ILiteStorage {
   static final Map<String, LiteStorage> _sync = {};
-  final _microtask = _Microtask();
-  late _IoStorage _concrete;
+  late Storage _concrete;
   late Future<LiteStorage> _initStorage;
   Map<String, dynamic>? _initialData;
 
@@ -29,7 +22,7 @@ class LiteStorage implements ILiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _concrete = _IoStorage(key);
+    _concrete = Storage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
@@ -55,49 +48,9 @@ class LiteStorage implements ILiteStorage {
   T? read<T>(String key) => _concrete.read(key);
 
   @override
-  void write(String key, dynamic value) {
-    _concrete.write(key, value);
-    return _tryFlush();
-  }
-
+  void write(String key, dynamic value) => _concrete.write(key, value);
   @override
-  void insertAtBeginning(String key, dynamic value) {
-    dynamic existingData = _concrete.read(key);
-
-    if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
-      existingData['data'].insert(0, value);
-    } else {
-      existingData = {
-        'data': [value]
-      };
-    }
-
-    _concrete.write(key, existingData);
-    return _tryFlush();
-  }
-
+  void remove(String key) => _concrete.remove(key);
   @override
-  void remove(String key) {
-    _concrete.remove(key);
-    return _tryFlush();
-  }
-
-  @override
-  void erase() {
-    _concrete.clear();
-    return _tryFlush();
-  }
-
-  void _tryFlush() => _microtask.exec(_addToQueue);
-
-  Future<void> _addToQueue() async => await _flush();
-
-  Future<void> _flush() async {
-    try {
-      await _concrete._flush();
-    } catch (e) {
-      rethrow;
-    }
-    return;
-  }
+  void erase() => _concrete.clear();
 }

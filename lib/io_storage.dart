@@ -1,11 +1,16 @@
-part of 'lite_storage.dart';
+import 'dart:convert';
+import 'dart:io';
 
-class _IoStorage {
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+
+@protected
+class Storage {
   final String _fileName;
-  _IoStorage(this._fileName);
-
   Map<String, dynamic> _subject = <String, dynamic>{};
-  RandomAccessFile? _randomAccessfile;
+  RandomAccessFile? _randomAccessFile;
+
+  Storage(this._fileName);
 
   Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject = initialData ?? <String, dynamic>{};
@@ -14,25 +19,25 @@ class _IoStorage {
     return file.lengthSync() == 0 ? _flush() : _readFile();
   }
 
+  T? read<T>(String key) => _subject[key] as T?;
+  void write(String key, dynamic value) => _subject[key] = value;
+  void remove(String key) => _subject.remove(key);
+  void clear() async => _subject.clear();
+
   Future<void> _flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
     RandomAccessFile file = await _getRandomFile();
 
-    _randomAccessfile = await file.lock();
-    _randomAccessfile = await _randomAccessfile!.setPosition(0);
-    _randomAccessfile = await _randomAccessfile!.writeFrom(buffer);
-    _randomAccessfile = await _randomAccessfile!.truncate(length);
-    _randomAccessfile = await file.unlock();
+    _randomAccessFile = await file.lock();
+    _randomAccessFile = await _randomAccessFile!.setPosition(0);
+    _randomAccessFile = await _randomAccessFile!.writeFrom(buffer);
+    _randomAccessFile = await _randomAccessFile!.truncate(length);
+    _randomAccessFile = await file.unlock();
     _madeBackup();
   }
 
   void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
-
-  T? read<T>(String key) => _subject[key] as T?;
-  void write(String key, dynamic value) => _subject[key] = value;
-  void remove(String key) => _subject.remove(key);
-  void clear() async => _subject.clear();
 
   Future<void> _readFile() async {
     try {
@@ -61,11 +66,11 @@ class _IoStorage {
   }
 
   Future<RandomAccessFile> _getRandomFile() async {
-    if (_randomAccessfile != null) return _randomAccessfile!;
+    if (_randomAccessFile != null) return _randomAccessFile!;
     final fileDb = await _getFile(false);
-    _randomAccessfile = await fileDb.open(mode: FileMode.append);
+    _randomAccessFile = await fileDb.open(mode: FileMode.append);
 
-    return _randomAccessfile!;
+    return _randomAccessFile!;
   }
 
   Future<File> _getFile(bool isBackup) async {
