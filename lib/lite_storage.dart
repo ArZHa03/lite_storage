@@ -1,34 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
 
-part 'io_storage.dart';
-part 'microtask.dart';
+import 'i_lite_storage.dart';
+import 'io_storage.dart';
 
-class LiteStorage {
+class LiteStorage implements ILiteStorage {
   static final Map<String, LiteStorage> _sync = {};
-  final _microtask = _Microtask();
   late Future<LiteStorage> _initStorage;
+  late Storage _concrete;
   Map<String, dynamic>? _initialData;
+  final String _kNonce = 'nonce';
+  final String _kMac = 'mac';
+  final String _kCipherText = 'cipherText';
+  AesCtr? _algorithm;
+  SecretKey? _secretKey;
 
-  static final String _kNonce = 'nonce';
-  static final String _kMac = 'mac';
-  static final String _kCipherText = 'cipherText';
-
-  static AesCtr? _algorithm;
-  static SecretKey? _secretKey;
-
-  factory LiteStorage({
-    String container = 'LiteStorage',
-    String? password,
-    String? path,
-    Map<String, dynamic>? initialData,
-  }) {
+  factory LiteStorage({String container = 'LiteStorage', String? password, String? path, Map<String, dynamic>? initialData}) {
     if (_sync.containsKey(container)) {
       return _sync[container]!;
     } else {
@@ -39,17 +29,14 @@ class LiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData, String? password]) {
-    _IoStorage(key);
+    _concrete = Storage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
       if (password != null) {
         _algorithm = AesCtr.with128bits(macAlgorithm: Hmac.sha256());
         final pbkdf2 = Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: 1000, bits: 128);
-        _secretKey = await pbkdf2.deriveKeyFromPassword(
-          password: password,
-          nonce: password.runes.toList().reversed.toList(),
-        );
+        _secretKey = await pbkdf2.deriveKeyFromPassword(password: password, nonce: password.runes.toList().reversed.toList());
       }
       await _init();
       return this;
@@ -58,7 +45,7 @@ class LiteStorage {
 
   Future<void> _init() async {
     try {
-      await _IoStorage.init(_initialData, _encrypt, _decrypt);
+      await _concrete.init(_initialData, _encrypt, _decrypt);
     } catch (err) {
       rethrow;
     }
@@ -68,6 +55,15 @@ class LiteStorage {
     WidgetsFlutterBinding.ensureInitialized();
     return LiteStorage(container: container, password: password)._initStorage;
   }
+
+  @override
+  T? read<T>(String key) => _concrete.read(key);
+  @override
+  void write(String key, dynamic value) => _concrete.write(key, value);
+  @override
+  void remove(String key) => _concrete.remove(key);
+  @override
+  void erase() => _concrete.clear();
 
   String _listToHexString(List<int> bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
@@ -105,73 +101,21 @@ class LiteStorage {
     if (_algorithm != null) {
       final jsonPayload = json.decode(value);
 
-      if (jsonPayload == null ||
-          !jsonPayload.containsKey(_kCipherText) ||
-          !jsonPayload.containsKey(_kMac) ||
-          !jsonPayload.containsKey(_kNonce)) {
+      if (jsonPayload == null || !jsonPayload.containsKey(_kCipherText) || !jsonPayload.containsKey(_kMac) || !jsonPayload.containsKey(_kNonce)) {
         return value;
       }
 
-      if (jsonPayload[_kNonce] is! String || jsonPayload[_kCipherText] is! String || jsonPayload[_kMac] is! String) {
-        return '';
-      }
+      if (jsonPayload[_kNonce] is! String || jsonPayload[_kCipherText] is! String || jsonPayload[_kMac] is! String) return '';
 
-      final secretBox = SecretBox(
-        _hexStringToList(jsonPayload[_kCipherText]),
-        nonce: _hexStringToList(jsonPayload[_kNonce]),
-        mac: Mac(_hexStringToList(jsonPayload[_kMac])),
-      );
+      final secretBox = SecretBox(_hexStringToList(jsonPayload[_kCipherText]),
+          nonce: _hexStringToList(jsonPayload[_kNonce]), mac: Mac(_hexStringToList(jsonPayload[_kMac])));
 
       try {
-        final cleartxt = await _algorithm!.decryptString(secretBox, secretKey: _secretKey!);
-        return cleartxt;
+        return await _algorithm!.decryptString(secretBox, secretKey: _secretKey!);
       } catch (e) {
         rethrow;
       }
     }
     return value;
-  }
-
-  T? read<T>(String key) => _IoStorage.read(key);
-
-  void write(String key, dynamic value) {
-    _IoStorage.write(key, value);
-    return _tryFlush();
-  }
-
-  void insertAtBeginning(String key, dynamic value) {
-    dynamic existingData = _IoStorage.read(key);
-    if (existingData is Map && existingData.containsKey('data') && existingData['data'] is List) {
-      existingData['data'].insert(0, value);
-    } else {
-      existingData = {
-        'data': [value]
-      };
-    }
-    _IoStorage.write(key, existingData);
-    return _tryFlush();
-  }
-
-  void remove(String key) {
-    _IoStorage.remove(key);
-    return _tryFlush();
-  }
-
-  void erase() {
-    _IoStorage.clear();
-    return _tryFlush();
-  }
-
-  void _tryFlush() => _microtask.exec(_addToQueue);
-
-  Future<void> _addToQueue() async => await _flush();
-
-  Future<void> _flush() async {
-    try {
-      await _IoStorage._flush();
-    } catch (e) {
-      rethrow;
-    }
-    return;
   }
 }

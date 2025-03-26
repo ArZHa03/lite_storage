@@ -1,6 +1,6 @@
 name: lite_storage
 description: "A simple, secure, fast, light and synchronous key-value storage written."
-version: 3.3.4
+version: 4.7.7
 homepage: ''
 
 environment:
