@@ -1,10 +1,10 @@
 name: lite_storage
 description: "A simple, secure, fast, light and synchronous key-value storage written."
-version: 4.7.7
+version: 5.6.8
 homepage: ''
 
 environment:
-  sdk: '>=3.5.0 <4.0.0'
+  sdk: '>=3.5.0'
   flutter: ">=1.17.0"
 
 dependencies:
