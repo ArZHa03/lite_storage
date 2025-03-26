@@ -14,12 +14,8 @@ class Storage {
 
   Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject.value = initialData ?? <String, dynamic>{};
-    if (await _exists()) {
-      await _readFromStorage();
-    } else {
-      await _writeToStorage(_subject.value);
-    }
-    return;
+    if (await _exists()) return await _readFromStorage();
+    return await _writeToStorage(_subject.value);
   }
 
   T? read<T>(String key) => _subject.value[key] as T?;
@@ -36,11 +32,8 @@ class Storage {
       _localStorage.update(_fileName, (val) => json.encode(data), ifAbsent: () => json.encode(_subject.value));
   Future<void> _readFromStorage() async {
     final dataFromLocal = _localStorage.entries.firstWhereOrNull((value) => value.key == _fileName);
-    if (dataFromLocal != null) {
-      _subject.value = json.decode(dataFromLocal.value) as Map<String, dynamic>;
-    } else {
-      await _writeToStorage(<String, dynamic>{});
-    }
+    if (dataFromLocal == null) return await _writeToStorage(<String, dynamic>{});
+    _subject.value = json.decode(dataFromLocal.value) as Map<String, dynamic>;
   }
 }
 
