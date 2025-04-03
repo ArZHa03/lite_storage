@@ -26,6 +26,8 @@ class Storage {
     _subject.value.clear();
   }
 
+  Future<void> flush() => _writeToStorage(_subject.value);
+
   html.Storage get _localStorage => html.window.localStorage;
   Future<bool> _exists() async => _localStorage.containsKey(_fileName);
   Future<void> _writeToStorage(Map<String, dynamic> data) async =>

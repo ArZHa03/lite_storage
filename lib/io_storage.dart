@@ -16,7 +16,7 @@ class Storage {
     _subject = initialData ?? <String, dynamic>{};
 
     RandomAccessFile file = await _getRandomFile();
-    return file.lengthSync() == 0 ? _flush() : _readFile();
+    return file.lengthSync() == 0 ? flush() : _readFile();
   }
 
   T? read<T>(String key) => _subject[key] as T?;
@@ -24,7 +24,7 @@ class Storage {
   void remove(String key) => _subject.remove(key);
   void clear() async => _subject.clear();
 
-  Future<void> _flush() async {
+  Future<void> flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
     RandomAccessFile file = await _getRandomFile();
@@ -61,7 +61,7 @@ class Storage {
           _subject = {};
         }
       }
-      _flush();
+      flush();
     }
   }
 
