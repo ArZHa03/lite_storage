@@ -5,9 +5,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter/widgets.dart';
 
 import 'i_lite_storage.dart';
-import 'io_storage.dart';
+import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
+
+part 'micro_task.dart';
 
 class LiteStorage implements ILiteStorage {
+  final _microTask = _MicroTask();
   static final Map<String, LiteStorage> _sync = {};
   late Future<LiteStorage> _initStorage;
   late Storage _concrete;
@@ -59,11 +62,20 @@ class LiteStorage implements ILiteStorage {
   @override
   T? read<T>(String key) => _concrete.read(key);
   @override
-  void write(String key, dynamic value) => _concrete.write(key, value);
+  void write(String key, dynamic value) {
+    _concrete.write(key, value);
+    return _tryFlush();
+  }
   @override
-  void remove(String key) => _concrete.remove(key);
+  void remove(String key) {
+    _concrete.remove(key);
+    return _tryFlush();
+  }
   @override
-  void erase() => _concrete.clear();
+  void erase() {
+    _concrete.clear();
+    return _tryFlush();
+  }
 
   String _listToHexString(List<int> bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
@@ -117,5 +129,18 @@ class LiteStorage implements ILiteStorage {
       }
     }
     return value;
+  }
+
+  void _tryFlush() => _microTask.exec(_addToQueue);
+
+  Future<void> _addToQueue() async => await _flush();
+
+  Future<void> _flush() async {
+    try {
+      await _concrete.flush();
+    } catch (e) {
+      rethrow;
+    }
+    return;
   }
 }
