@@ -41,14 +41,14 @@ class _HTMLStorage implements _IStorage {
   static Future<void> _writeToStorage(Map<String, dynamic> data) async =>
       _localStorage.update(_fileName, (val) => json.encode(data), ifAbsent: () => json.encode(_subject.value));
   static Future<void> _readFromStorage() async {
-    final dataFromLocal = _localStorage.entries.firstWhereOrNull((value) => value.key == _fileName);
+    final dataFromLocal = _localStorage.entries._firstWhereOrNull((value) => value.key == _fileName);
     if (dataFromLocal == null) return await _writeToStorage(<String, dynamic>{});
     _subject.value = json.decode(dataFromLocal.value) as Map<String, dynamic>;
   }
 }
 
-extension FirstWhereExt<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T element) test) {
+extension _FirstWhereExt<T> on Iterable<T> {
+  T? _firstWhereOrNull(bool Function(T element) test) {
     for (var element in this) {
       if (test(element)) return element;
     }

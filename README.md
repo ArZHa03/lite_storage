@@ -11,7 +11,6 @@ dependencies:
   lite_storage: 
     git:
       url: https://github.com/ArZHa03/lite_storage.git
-      ref: static
 ```
 
 ## Usage
