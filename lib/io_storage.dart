@@ -1,39 +1,39 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+part of 'lite_storage.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-
-@protected
-class Storage {
-  static Storage? _instance;
+class _IOStorage implements _IStorage {
+  static _IOStorage? _instance;
   static late String _fileName;
   static Map<String, dynamic> _subject = <String, dynamic>{};
   static RandomAccessFile? _randomAccessFile;
 
-  factory Storage(String fileName) {
-    _instance ??= Storage._internal(fileName);
+  factory _IOStorage(String fileName) {
+    _instance ??= _IOStorage._internal(fileName);
     return _instance!;
   }
 
-  Storage._internal(String fileName) {
+  _IOStorage._internal(String fileName) {
     _fileName = fileName;
   }
 
-  static Future<void> init([Map<String, dynamic>? initialData]) async {
+  @override
+  Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject = initialData ?? <String, dynamic>{};
 
     RandomAccessFile file = await _getRandomFile();
     return file.lengthSync() == 0 ? flush() : _readFile();
   }
 
-  static T? read<T>(String key) => _subject[key] as T?;
-  static void write(String key, dynamic value) => _subject[key] = value;
-  static void remove(String key) => _subject.remove(key);
-  static void clear() async => _subject.clear();
+  @override
+  T? read<T>(String key) => _subject[key] as T?;
+  @override
+  void write(String key, dynamic value) => _subject[key] = value;
+  @override
+  void remove(String key) => _subject.remove(key);
+  @override
+  void clear() async => _subject.clear();
 
-  static Future<void> flush() async {
+  @override
+  Future<void> flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
     RandomAccessFile file = await _getRandomFile();
@@ -47,7 +47,7 @@ class Storage {
   }
 
   static void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
-  static Future<void> _readFile() async {
+  Future<void> _readFile() async {
     try {
       RandomAccessFile file = await _getRandomFile();
       file = await file.setPosition(0);
