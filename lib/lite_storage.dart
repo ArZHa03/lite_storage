@@ -1,16 +1,26 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' show log;
+// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
+import 'dart:html' as html;
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:path_provider/path_provider.dart';
 
-import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
-import 'i_lite_storage.dart';
-
+part 'html_storage.dart';
+part 'i_storage.dart';
+part 'io_storage.dart';
 part 'micro_task.dart';
 
-class LiteStorage implements ILiteStorage {
-  final _microTask = _MicroTask();
+class LiteStorage {
   static final Map<String, LiteStorage> _sync = {};
-  late Storage _concrete;
+  static late _IStorage _storage;
+
+  static bool _isInit = false;
+
   late Future<LiteStorage> _initStorage;
   Map<String, dynamic>? _initialData;
 
@@ -25,7 +35,7 @@ class LiteStorage implements ILiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _concrete = Storage(key);
+    _storage = kIsWeb ? _HTMLStorage(key) : _IOStorage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
@@ -36,7 +46,8 @@ class LiteStorage implements ILiteStorage {
 
   Future<void> _init() async {
     try {
-      await _concrete.init(_initialData);
+      await _storage.init(_initialData);
+      _isInit = true;
     } catch (err) {
       rethrow;
     }
@@ -47,36 +58,37 @@ class LiteStorage implements ILiteStorage {
     return LiteStorage(container)._initStorage;
   }
 
-  @override
-  T? read<T>(String key) => _concrete.read(key);
-  @override
-  void write(String key, dynamic value) {
-    _concrete.write(key, value);
+  static dynamic read<T>(String key) => _isInit ? _storage.read(key) : _log();
+  static void write(String key, dynamic value) {
+    if (!_isInit) return _log();
+    _storage.write(key, value);
     return _tryFlush();
   }
 
-  @override
-  void remove(String key) {
-    _concrete.remove(key);
+  static void remove(String key) {
+    if (!_isInit) return _log();
+    _storage.remove(key);
     return _tryFlush();
   }
 
-  @override
-  void erase() {
-    _concrete.clear();
+  static void erase() {
+    if (!_isInit) return _log();
+    _storage.clear();
     return _tryFlush();
   }
 
-  void _tryFlush() => _microTask.exec(_addToQueue);
+  static void _tryFlush() => _MicroTask.exec(_addToQueue);
 
-  Future<void> _addToQueue() async => await _flush();
+  static Future<void> _addToQueue() async => await _flush();
 
-  Future<void> _flush() async {
+  static Future<void> _flush() async {
     try {
-      await _concrete.flush();
+      await _storage.flush();
     } catch (e) {
       rethrow;
     }
     return;
   }
+
+  static void _log() => log(name: 'LiteStorage', 'LiteStorage need to be initialized');
 }

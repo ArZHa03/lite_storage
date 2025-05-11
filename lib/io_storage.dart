@@ -1,17 +1,21 @@
-import 'dart:convert';
-import 'dart:io';
+part of 'lite_storage.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+class _IOStorage implements _IStorage {
+  static _IOStorage? _instance;
+  static late String _fileName;
+  static Map<String, dynamic> _subject = <String, dynamic>{};
+  static RandomAccessFile? _randomAccessFile;
 
-@protected
-class Storage {
-  final String _fileName;
-  Map<String, dynamic> _subject = <String, dynamic>{};
-  RandomAccessFile? _randomAccessFile;
+  factory _IOStorage(String fileName) {
+    _instance ??= _IOStorage._internal(fileName);
+    return _instance!;
+  }
 
-  Storage(this._fileName);
+  _IOStorage._internal(String fileName) {
+    _fileName = fileName;
+  }
 
+  @override
   Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject = initialData ?? <String, dynamic>{};
 
@@ -19,11 +23,16 @@ class Storage {
     return file.lengthSync() == 0 ? flush() : _readFile();
   }
 
+  @override
   T? read<T>(String key) => _subject[key] as T?;
+  @override
   void write(String key, dynamic value) => _subject[key] = value;
+  @override
   void remove(String key) => _subject.remove(key);
+  @override
   void clear() async => _subject.clear();
 
+  @override
   Future<void> flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
@@ -37,8 +46,7 @@ class Storage {
     _madeBackup();
   }
 
-  void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
-
+  static void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
   Future<void> _readFile() async {
     try {
       RandomAccessFile file = await _getRandomFile();
@@ -65,7 +73,7 @@ class Storage {
     }
   }
 
-  Future<RandomAccessFile> _getRandomFile() async {
+  static Future<RandomAccessFile> _getRandomFile() async {
     if (_randomAccessFile != null) return _randomAccessFile!;
     final fileDb = await _getFile(false);
     _randomAccessFile = await fileDb.open(mode: FileMode.append);
@@ -73,7 +81,7 @@ class Storage {
     return _randomAccessFile!;
   }
 
-  Future<File> _getFile(bool isBackup) async {
+  static Future<File> _getFile(bool isBackup) async {
     final dir = await getApplicationDocumentsDirectory();
     final path = await _getPath(isBackup, dir.path);
     final file = File(path);
@@ -81,7 +89,7 @@ class Storage {
     return file;
   }
 
-  Future<String> _getPath(bool isBackup, String? path) async {
+  static Future<String> _getPath(bool isBackup, String? path) async {
     final isWindows = Platform.isWindows;
     final separator = isWindows ? '\\' : '/';
     return isBackup ? '$path$separator$_fileName.bak' : '$path$separator$_fileName.gs';

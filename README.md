@@ -9,7 +9,9 @@ Add this to your package's `pubspec.yaml` file and then run `pub get`:
 ```yaml
 dependencies:
   lite_storage: 
-    git: https://github.com/ArZHa03/lite_storage.git
+    git:
+      url: https://github.com/ArZHa03/lite_storage.git
+      ref: static
 ```
 
 ## Usage
@@ -24,16 +26,16 @@ await LiteStorage.init(); // init first
 
 ```dart
 // Write a value
-LiteStorage().write('token', '!@#$%^&*'); // over/write key token on storage
+LiteStorage.write('token', '!@#$%^&*'); // over/write key token on storage
 
 // Read a value
-String? token = LiteStorage().read<String>('token'); // read storage with key token : "!@#$%^&*"
+String? token = LiteStorage.read<String>('token'); // read storage with key token : "!@#$%^&*"
 
 // Remove a value
-LiteStorage().remove('token'); // delete key token on storage
+LiteStorage.remove('token'); // delete key token on storage
 
 // Clear all values
-LiteStorage().erase(); // delete all data storage
+LiteStorage.erase(); // delete all data storage
 ```
 
 ### API
