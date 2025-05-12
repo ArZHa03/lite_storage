@@ -1,21 +1,26 @@
-part of 'lite_storage.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
-class _IOStorage implements _IStorage {
-  static _IOStorage? _instance;
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+
+@protected
+class Storage {
+  static Storage? _instance;
   static late String _fileName;
   static Map<String, dynamic> _subject = <String, dynamic>{};
   static RandomAccessFile? _randomAccessFile;
 
-  factory _IOStorage(String fileName) {
-    _instance ??= _IOStorage._internal(fileName);
+  factory Storage(String fileName) {
+    _instance ??= Storage._internal(fileName);
     return _instance!;
   }
 
-  _IOStorage._internal(String fileName) {
+  Storage._internal(String fileName) {
     _fileName = fileName;
   }
 
-  @override
   Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject = initialData ?? <String, dynamic>{};
 
@@ -23,16 +28,11 @@ class _IOStorage implements _IStorage {
     return file.lengthSync() == 0 ? flush() : _readFile();
   }
 
-  @override
   T? read<T>(String key) => _subject[key] as T?;
-  @override
   void write(String key, dynamic value) => _subject[key] = value;
-  @override
   void remove(String key) => _subject.remove(key);
-  @override
   void clear() async => _subject.clear();
 
-  @override
   Future<void> flush() async {
     final buffer = utf8.encode(json.encode(_subject));
     final length = buffer.length;
@@ -57,8 +57,9 @@ class _IOStorage implements _IStorage {
     } catch (e) {
       final file = await _getFile(true);
 
-      final content = await file.readAsString()
-        ..trim();
+      final content =
+          await file.readAsString()
+            ..trim();
 
       if (content.isEmpty) {
         _subject = {};

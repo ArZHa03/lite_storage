@@ -1,39 +1,41 @@
-part of 'lite_storage.dart';
+import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
+import 'dart:html' as html;
 
-class _HTMLStorage implements _IStorage {
-  static _HTMLStorage? _instance;
+import 'package:flutter/material.dart';
+
+@protected
+class Storage {
+  static Storage? _instance;
   static late String _fileName;
   static final _ValueStorage<Map<String, dynamic>> _subject = _ValueStorage<Map<String, dynamic>>(<String, dynamic>{});
 
-  factory _HTMLStorage(String fileName) {
-    _instance ??= _HTMLStorage._internal(fileName);
+  factory Storage(String fileName) {
+    _instance ??= Storage._internal(fileName);
     return _instance!;
   }
 
-  _HTMLStorage._internal(String fileName) {
+  Storage._internal(String fileName) {
     _fileName = fileName;
   }
 
-  @override
   Future<void> init([Map<String, dynamic>? initialData]) async {
     _subject.value = initialData ?? <String, dynamic>{};
     if (await _exists()) return await _readFromStorage();
     return await _writeToStorage(_subject.value);
   }
 
-  @override
   T? read<T>(String key) => _subject.value[key] as T?;
-  @override
+
   void remove(String key) => _subject.value.remove(key);
-  @override
+
   void write(String key, dynamic value) => _subject.value[key] = value;
-  @override
+
   void clear() {
     _localStorage.remove(_fileName);
     _subject.value.clear();
   }
 
-  @override
   Future<void> flush() => _writeToStorage(_subject.value);
 
   static html.Storage get _localStorage => html.window.localStorage;

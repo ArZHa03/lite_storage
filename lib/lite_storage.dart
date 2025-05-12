@@ -1,23 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer' show log;
-// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
-import 'dart:html' as html;
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
 
-part 'html_storage.dart';
-part 'i_storage.dart';
-part 'io_storage.dart';
+import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
+
 part 'micro_task.dart';
 
 class LiteStorage {
   static final Map<String, LiteStorage> _sync = {};
-  static late _IStorage _storage;
+  static late Storage _storage;
 
   static bool _isInit = false;
 
@@ -35,7 +28,7 @@ class LiteStorage {
   }
 
   LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _storage = kIsWeb ? _HTMLStorage(key) : _IOStorage(key);
+    _storage = Storage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
