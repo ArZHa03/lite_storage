@@ -1,8 +1,6 @@
-import 'dart:async';
+import 'dart:async' show scheduleMicrotask;
 import 'dart:developer' show log;
-
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show WidgetsFlutterBinding;
 
 import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
 

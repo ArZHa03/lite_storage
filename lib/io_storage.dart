@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:convert' show json, utf8;
+import 'dart:io' show File, FileMode, Platform, RandomAccessFile;
 
-import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart' show Uint8List, protected;
+import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
 
 @protected
 class Storage {
