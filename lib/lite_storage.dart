@@ -1,21 +1,36 @@
 import 'dart:async' show scheduleMicrotask;
-import 'dart:developer' show log;
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart' show WidgetsFlutterBinding;
 
-import 'html_storage.dart' if (dart.library.io) 'io_storage.dart';
+import 'dart:convert' show json, utf8;
+import 'dart:io' show File, FileMode, Platform, RandomAccessFile;
+import 'dart:typed_data';
 
+import 'package:path_provider/path_provider.dart'
+    show getApplicationDocumentsDirectory;
+
+import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb;
+import 'package:web/web.dart' as web;
+
+part 'i_storage.dart';
+part 'html_storage.dart';
+part 'io_storage.dart';
 part 'micro_task.dart';
 
 class LiteStorage {
   static final Map<String, LiteStorage> _sync = {};
-  static late Storage _storage;
+  static late _IStorage _storage;
 
   static bool _isInit = false;
 
   late Future<LiteStorage> _initStorage;
   Map<String, dynamic>? _initialData;
 
-  factory LiteStorage([String container = 'LiteStorage', String? path, Map<String, dynamic>? initialData]) {
+  factory LiteStorage([
+    String container = 'LiteStorage',
+    String? path,
+    Map<String, dynamic>? initialData,
+  ]) {
     if (_sync.containsKey(container)) {
       return _sync[container]!;
     } else {
@@ -25,8 +40,12 @@ class LiteStorage {
     }
   }
 
-  LiteStorage._internal(String key, [String? path, Map<String, dynamic>? initialData]) {
-    _storage = Storage(key);
+  LiteStorage._internal(
+    String key, [
+    String? path,
+    Map<String, dynamic>? initialData,
+  ]) {
+    _storage = kIsWeb ? _HTMLStorage(key) : _IOStorage(key);
     _initialData = initialData;
 
     _initStorage = Future<LiteStorage>(() async {
@@ -81,5 +100,6 @@ class LiteStorage {
     return;
   }
 
-  static void _log() => log(name: 'LiteStorage', 'LiteStorage need to be initialized');
+  static void _log() =>
+      dev.log('LiteStorage need to be initialized', name: 'LiteStorage');
 }

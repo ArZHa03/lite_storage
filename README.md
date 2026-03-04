@@ -1,17 +1,23 @@
 # LiteStorage
 
-A super-duper-mega-ultra-extra fast, light and synchronous key-value storage written.
+A super-duper-mega-ultra-extra fast, light and synchronous key-value storage for Flutter (Mobile, Desktop, and Web).
+
+## Features
+
+- 🚀 **Fast**: Synchronous read and write operations.
+- 🪶 **Lightweight**: Minimal dependencies and small footprint.
+- 🌐 **Web Support**: Fully compatible with Flutter Web using `package:web`.
+- 💻 **Multiplatform**: Works on Android, iOS, macOS, Windows, Linux, and Web.
 
 ## Installation
 
-Add this to your package's `pubspec.yaml` file and then run `pub get`:
+Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lite_storage: 
-    git:
-      url: https://github.com/ArZHa03/lite_storage.git
+  lite_storage: ^1.1.0
 ```
+
 
 ## Usage
 
