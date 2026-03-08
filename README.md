@@ -6,7 +6,7 @@ A super-duper-mega-ultra-extra fast, light and synchronous key-value storage for
 
 - 🚀 **Fast**: Synchronous read and write operations.
 - 🪶 **Lightweight**: Minimal dependencies and small footprint.
-- 🌐 **Web Support**: Fully compatible with Flutter Web using `package:web`.
+- 🌐 **Web Support**: Fully compatible with Flutter Web using `package:web` and supports **WebAssembly (Wasm)** compilation.
 - 💻 **Multiplatform**: Works on Android, iOS, macOS, Windows, Linux, and Web.
 
 ## Installation
@@ -15,7 +15,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lite_storage: ^1.1.0
+  lite_storage: ^1.1.1
 ```
 
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (08/03/2026)
+### Changed:
+- Migrated Web implementation from `dart:html` to `package:web` and `dart:js_interop` to support WebAssembly (Wasm) compilation.
+
 ## 1.1.0 (04/03/2026)
 ### Added:
 - Full support for Flutter Web using `package:web`.

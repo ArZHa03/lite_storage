@@ -10,8 +10,7 @@ IStorage createHtmlStorage(String key) => _HTMLStorage(key);
 class _HTMLStorage implements IStorage {
   static _HTMLStorage? _instance;
   static late String _fileName;
-  static final _ValueStorage<Map<String, dynamic>> _subject =
-      _ValueStorage<Map<String, dynamic>>(<String, dynamic>{});
+  static final _ValueStorage<Map<String, dynamic>> _subject = _ValueStorage<Map<String, dynamic>>(<String, dynamic>{});
 
   factory _HTMLStorage(String fileName) {
     _instance ??= _HTMLStorage._internal(fileName);
@@ -49,8 +48,7 @@ class _HTMLStorage implements IStorage {
 
   static web.Storage get _localStorage => web.window.localStorage;
 
-  static Future<bool> _exists() async =>
-      _localStorage.getItem(_fileName) != null;
+  static Future<bool> _exists() async => _localStorage.getItem(_fileName) != null;
 
   static Future<void> _writeToStorage(Map<String, dynamic> data) async {
     final dataValue = json.encode(data);
