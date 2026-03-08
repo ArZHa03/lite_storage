@@ -46,9 +46,7 @@ class _IOStorage implements _IStorage {
     _madeBackup();
   }
 
-  static void _madeBackup() => _getFile(
-    true,
-  ).then((value) => value.writeAsString(json.encode(_subject), flush: true));
+  static void _madeBackup() => _getFile(true).then((value) => value.writeAsString(json.encode(_subject), flush: true));
 
   Future<void> _readFile() async {
     try {
@@ -96,8 +94,6 @@ class _IOStorage implements _IStorage {
   static Future<String> _getPath(bool isBackup, String? path) async {
     final isWindows = Platform.isWindows;
     final separator = isWindows ? '\\' : '/';
-    return isBackup
-        ? '$path$separator$_fileName.bak'
-        : '$path$separator$_fileName.gs';
+    return isBackup ? '$path$separator$_fileName.bak' : '$path$separator$_fileName.gs';
   }
 }
