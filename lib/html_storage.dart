@@ -3,8 +3,7 @@ part of 'lite_storage.dart';
 class _HTMLStorage implements _IStorage {
   static _HTMLStorage? _instance;
   static late String _fileName;
-  static final _ValueStorage<Map<String, dynamic>> _subject =
-      _ValueStorage<Map<String, dynamic>>(<String, dynamic>{});
+  static final _ValueStorage<Map<String, dynamic>> _subject = _ValueStorage<Map<String, dynamic>>(<String, dynamic>{});
 
   factory _HTMLStorage(String fileName) {
     _instance ??= _HTMLStorage._internal(fileName);
@@ -42,17 +41,16 @@ class _HTMLStorage implements _IStorage {
 
   static web.Storage get _localStorage => web.window.localStorage;
 
-  static Future<bool> _exists() async =>
-      _localStorage.getItem(_fileName) != null;
+  static Future<bool> _exists() async => _localStorage.getItem(_fileName) != null;
 
-  static Future<void> _writeToStorage(Map<String, dynamic> data) async =>
-      _localStorage.setItem(_fileName, json.encode(data));
+  static Future<void> _writeToStorage(Map<String, dynamic> data) async {
+    final dataValue = json.encode(data);
+    _localStorage.setItem(_fileName, dataValue);
+  }
 
   static Future<void> _readFromStorage() async {
     final dataFromLocal = _localStorage.getItem(_fileName);
-    if (dataFromLocal == null) {
-      return await _writeToStorage(<String, dynamic>{});
-    }
+    if (dataFromLocal == null) return await _writeToStorage(<String, dynamic>{});
     _subject.value = json.decode(dataFromLocal) as Map<String, dynamic>;
   }
 }
